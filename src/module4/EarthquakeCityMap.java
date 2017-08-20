@@ -1,6 +1,7 @@
 package module4;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import de.fhpotsdam.unfolding.UnfoldingMap;
@@ -35,7 +36,7 @@ public class EarthquakeCityMap extends PApplet {
 	private static final long serialVersionUID = 1L;
 
 	// IF YOU ARE WORKING OFFILINE, change the value of this variable to true
-	private static final boolean offline = false;
+	private static final boolean offline = true;
 	
 	/** This is where to find the local tiles, for working without an Internet connection */
 	public static String mbTilesString = "blankLight-1-3.mbtiles";
@@ -43,7 +44,7 @@ public class EarthquakeCityMap extends PApplet {
 	
 
 	//feed with magnitude 2.5+ Earthquakes
-	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
+	private String earthquakesURL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
 	
 	// The files containing city names and info and country names and info
 	private String cityFile = "city-data.json";
@@ -77,7 +78,7 @@ public class EarthquakeCityMap extends PApplet {
 		// FOR TESTING: Set earthquakesURL to be one of the testing files by uncommenting
 		// one of the lines below.  This will work whether you are online or offline
 		//earthquakesURL = "test1.atom";
-		//earthquakesURL = "test2.atom";
+		earthquakesURL = "test2.atom";
 		
 		// WHEN TAKING THIS QUIZ: Uncomment the next line
 		//earthquakesURL = "quiz1.atom";
@@ -92,6 +93,7 @@ public class EarthquakeCityMap extends PApplet {
 		List<Feature> cities = GeoJSONReader.loadData(this, cityFile);
 		cityMarkers = new ArrayList<Marker>();
 		for(Feature city : cities) {
+			//System.out.println(city.getProperties());
 		  cityMarkers.add(new CityMarker(city));
 		}
 	    
@@ -111,7 +113,7 @@ public class EarthquakeCityMap extends PApplet {
 	    }
 
 	    // could be used for debugging
-	    printQuakes();
+	    //printQuakes();
 	 		
 	    // (3) Add markers to map
 	    //     NOTE: Country markers are not added to the map.  They are used
@@ -165,6 +167,13 @@ public class EarthquakeCityMap extends PApplet {
 		// IMPLEMENT THIS: loop over all countries to check if location is in any of them
 		
 		// TODO: Implement this method using the helper method isInCountry
+		for (Marker country : countryMarkers) {
+			
+			//Verifying if the earthquake has occurred in any country or island
+			if (isInCountry(earthquake, country)){
+				return true;
+			}
+		}
 		
 		// not inside any country
 		return false;
@@ -179,6 +188,33 @@ public class EarthquakeCityMap extends PApplet {
 	private void printQuakes() 
 	{
 		// TODO: Implement this method
+		HashMap<String, Integer> quakesCount = new HashMap<>();
+		quakesCount.put("OcaenQuakes", 0);
+		for (Marker country : countryMarkers) {
+			for (Marker quake : quakeMarkers){
+				//verifying if earthquakes list has country
+				if (country.getProperty("name") == quake.getProperty("country")){
+					String countryName = (String)country.getProperty("name");
+					//verify if already earthquake count is added to the hashMap if not create new pair
+					if (quakesCount.containsKey(countryName)){
+						quakesCount.put(countryName, quakesCount.get(countryName)+1);
+					} else {
+						quakesCount.put(countryName, 1);
+					}
+				} 
+			}
+		}
+		
+		for (Marker quake : quakeMarkers) {
+			if (!(quakesCount.containsKey(quake.getProperty("country")))){
+				quakesCount.put("OcaenQuakes", quakesCount.get("OcaenQuakes")+1);
+			}
+		}
+		
+			
+	   for (String keys : quakesCount.keySet()){
+		 System.out.println("Country Name: "+ keys + "  EarthquakeCount: "+ quakesCount.get(keys));
+	   }
 	}
 	
 	
